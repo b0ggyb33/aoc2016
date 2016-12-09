@@ -37,13 +37,16 @@ def getValidationStrings(input, function, lengthOfStringToCheck):
 
 
 def checkSSLInString(input, validation):
+
     for idx in range(len(input) - 2):
-        if SSLSupport(input[idx:idx + 3], validation):
-            return True
+        if SSLSupport(input[idx:idx + 3]):
+            reconstructed = input[idx+1]+input[idx]+input[idx+1]  # ABA into BAB
+            if reconstructed in validation:
+                return True
     return False
 
 
-def checkTLSInString(input, validation=None):
+def checkTLSInString(input):
     validation = getValidationStrings(input, TLSSupport, 4)
     return len(validation) > 0
 
@@ -149,10 +152,10 @@ class Day7(unittest.TestCase):
         self.assertTrue(SSLSupport("ABA"))
 
     def test_SSL_SupportInHypernet(self):
-        self.assertTrue(SSLSupport("BAB", ["ABA"]))
+        self.assertTrue(checkSSLInString("BAB", ["ABA"]))
 
     def test_SSL_NoSupportInHypernet(self):
-        self.assertFalse(SSLSupport("ABA", ["ABA"]))
+        self.assertFalse(checkSSLInString("ABA", ["ABA"]))
 
     def test_validationreturnsABA(self):
         self.assertEqual(getValidationStrings("ABADC", SSLSupport, 3), ["ABA"])
@@ -192,5 +195,4 @@ class Day7(unittest.TestCase):
         count = 0
         for line in open("day7.txt").readlines():
             count += linePassesPartTwo(line)
-        # lower than 454
-        self.assertEqual(count, 0)
+        self.assertEqual(count, 258)
