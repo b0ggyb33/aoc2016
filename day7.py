@@ -12,19 +12,23 @@ def TLSSupport(input):
         return False
 
 
+def generateTestStrings(input, length):
+    for idx in range(len(input) - (length - 1)):
+        yield input[idx:idx + length]
+
+
 def getValidationStrings(input, lengthOfStringToCheck):
     validation = []
-    for idx in range(len(input) - (lengthOfStringToCheck - 1)):
-        substring = input[idx:idx + lengthOfStringToCheck]
+    for substring in generateTestStrings(input, lengthOfStringToCheck):
         if TLSSupport(substring):
             validation.append(substring)
     return validation
 
 
 def checkSSLInString(input, validation):
-    for idx in range(len(input) - 2):
-        if TLSSupport(input[idx:idx + 3]):
-            reconstructed = input[idx + 1] + input[idx] + input[idx + 1]  # ABA into BAB
+    for substring in generateTestStrings(input, 3):
+        if TLSSupport(substring):
+            reconstructed = substring[2] + substring[:2]  # ABA into BAB
             if reconstructed in validation:
                 return True
     return False
@@ -42,16 +46,26 @@ def parseInput(input):
     return input.split("_")
 
 
+def getSuperNets(words):
+    for i in range(0, len(words), 2):
+        yield words[i]
+
+
+def getHyperNets(words):
+    for i in range(1, len(words), 2):
+        yield words[i]
+
+
 def linePassesPartOne(line):
     subwords = parseInput(line)
 
     haveFoundTLSInAnAllowedWord = False
 
-    for i in range(0, len(subwords), 2):
-        haveFoundTLSInAnAllowedWord |= checkTLSInString(subwords[i])
+    for word in getSuperNets(subwords):
+        haveFoundTLSInAnAllowedWord |= checkTLSInString(word)
 
-    for i in range(1, len(subwords), 2):
-        if checkTLSInString(subwords[i]):
+    for word in getHyperNets(subwords):
+        if checkTLSInString(word):
             return False
     return haveFoundTLSInAnAllowedWord
 
@@ -60,11 +74,11 @@ def linePassesPartTwo(line):
     subwords = parseInput(line)
 
     validation = []
-    for i in range(0, len(subwords), 2):
-        validation.extend(getValidationStrings(subwords[i], 3))
+    for word in getSuperNets(subwords):
+        validation.extend(getValidationStrings(word, 3))
 
-    for i in range(1, len(subwords), 2):
-        if checkSSLInString(subwords[i], validation):
+    for word in getHyperNets(subwords):
+        if checkSSLInString(word, validation):
             return True
     return False
 
