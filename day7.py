@@ -1,53 +1,37 @@
 import unittest
 
 
-def SSLSupport(input, validation=None):
-    if len(input)<3:
+def TLSSupport(input):
+    if input[0] == input[1]:
         return False
-    if input[0] == input[2]:
-        if input[1] != input[0]:
-            if validation:
-                for valid in validation:  # now we check all the validation strings to look for the reverse string
-                    if valid[0] == input[1] and valid[1] == input[0]:
-                        return True
-                return False
-            else:
-                return True
-    return False
 
-
-def TLSSupport(input, validation=None):
-    if len(input) < 4:
-        return False
-    if input[0] == input[3]:
-        if input[1] == input[2]:
-            if input[0] != input[1]:
-                return True
+    if input[0] == input[-1]:
+        if input[1] == input[-2]:
+            return True
     else:
         return False
 
 
-def getValidationStrings(input, function, lengthOfStringToCheck):
+def getValidationStrings(input, lengthOfStringToCheck):
     validation = []
     for idx in range(len(input) - (lengthOfStringToCheck - 1)):
         substring = input[idx:idx + lengthOfStringToCheck]
-        if function(substring):
+        if TLSSupport(substring):
             validation.append(substring)
     return validation
 
 
 def checkSSLInString(input, validation):
-
     for idx in range(len(input) - 2):
-        if SSLSupport(input[idx:idx + 3]):
-            reconstructed = input[idx+1]+input[idx]+input[idx+1]  # ABA into BAB
+        if TLSSupport(input[idx:idx + 3]):
+            reconstructed = input[idx + 1] + input[idx] + input[idx + 1]  # ABA into BAB
             if reconstructed in validation:
                 return True
     return False
 
 
 def checkTLSInString(input):
-    validation = getValidationStrings(input, TLSSupport, 4)
+    validation = getValidationStrings(input, 4)
     return len(validation) > 0
 
 
@@ -77,7 +61,7 @@ def linePassesPartTwo(line):
 
     validation = []
     for i in range(0, len(subwords), 2):
-        validation.extend(getValidationStrings(subwords[i], SSLSupport, 3))
+        validation.extend(getValidationStrings(subwords[i], 3))
 
     for i in range(1, len(subwords), 2):
         if checkSSLInString(subwords[i], validation):
@@ -149,7 +133,7 @@ class Day7(unittest.TestCase):
         self.assertEqual(count, 105)
 
     def test_SSL_SupportInSupernet(self):
-        self.assertTrue(SSLSupport("ABA"))
+        self.assertTrue(TLSSupport("ABA"))
 
     def test_SSL_SupportInHypernet(self):
         self.assertTrue(checkSSLInString("BAB", ["ABA"]))
@@ -158,13 +142,13 @@ class Day7(unittest.TestCase):
         self.assertFalse(checkSSLInString("ABA", ["ABA"]))
 
     def test_validationreturnsABA(self):
-        self.assertEqual(getValidationStrings("ABADC", SSLSupport, 3), ["ABA"])
+        self.assertEqual(getValidationStrings("ABADC", 3), ["ABA"])
 
     def test_validationreturnsABAandBAB(self):
-        self.assertEqual(getValidationStrings("ABABC", SSLSupport, 3), ["ABA", "BAB"])
+        self.assertEqual(getValidationStrings("ABABC", 3), ["ABA", "BAB"])
 
     def test_validationreturnsNothing(self):
-        self.assertEqual(getValidationStrings("ABCDE", SSLSupport, 3), [])
+        self.assertEqual(getValidationStrings("ABCDE", 3), [])
 
     def test_ExampleOne(self):
         test = "aba[bab]xyz"
@@ -176,7 +160,7 @@ class Day7(unittest.TestCase):
 
     def test_exampleThree(self):
         test = "aaa[kek]eke"
-        self.assertFalse(SSLSupport("AAA"))
+        self.assertFalse(TLSSupport("AAA"))
         self.assertTrue(linePassesPartTwo(test))
 
     def test_exampleFour(self):
